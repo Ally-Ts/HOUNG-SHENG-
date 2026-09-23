@@ -1,1 +1,108 @@
 
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高單價儀器管理總表</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .loading {
+            font-size: 16px;
+            color: #666;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>高單價儀器管理總表</h2>
+    <div id="loading" class="loading">正在載入最新資料，請稍候...</div>
+    
+    <!-- 用來顯示資料的表格 -->
+    <table id="instrumentTable" style="display: none;">
+        <thead>
+            <tr id="tableHeader">
+                <!-- 動態產生的表頭 -->
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- 動態產生的資料內容 -->
+        </tbody>
+    </table>
+
+    <script>
+        // 1. 請將這裡替換成您的 Google Apps Script 部署網址
+        const apiURL = 'https://script.google.com/macros/s/AKfycbz7NxHN1zS4-XnoMQ12gzvhcwHHrmxX8e-k8l1ckY3x1fSioVyzl3VCkkXqc-A4daFI/exec';
+
+        // 2. 使用 fetch 取得資料
+        fetch(apiURL)
+            .then(response => response.json())
+            .then(data => {
+                const loadingDiv = document.getElementById('loading');
+                const table = document.getElementById('instrumentTable');
+                const tableHeader = document.getElementById('tableHeader');
+                const tableBody = document.getElementById('tableBody');
+
+                // 檢查是否有資料
+                if (!data || data.length === 0) {
+                    loadingDiv.textContent = '目前沒有資料。';
+                    return;
+                }
+
+                // 隱藏讀取文字，顯示表格
+                loadingDiv.style.display = 'none';
+                table.style.display = 'table';
+
+                // 3. 自動抓取 Excel 的欄位名稱（Key）作為表格標題 (th)
+                const columns = Object.keys(data[0]);
+                columns.forEach(col => {
+                    const th = document.createElement('th');
+                    th.textContent = col;
+                    tableHeader.appendChild(th);
+                });
+
+                // 4. 將每一筆資料填入表格內容 (td)
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    columns.forEach(col => {
+                        const td = document.createElement('td');
+                        td.textContent = row[col] !== undefined ? row[col] : '';
+                        tr.appendChild(td);
+                    });
+                    tableBody.appendChild(tr);
+                });
+            })
+            .catch(error => {
+                console.error('讀取資料失敗:', error);
+                document.getElementById('loading').textContent = '載入資料失敗，請檢查網路或 API 設定。';
+            });
+    </script>
+
+</body>
+</html>
